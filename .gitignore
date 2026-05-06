@@ -5,4 +5,6 @@ __pycache__/
 data/cache/
 data/*.db
 data/reports/*.md
+data/logs/
+.pytest_cache/
 .DS_Store
