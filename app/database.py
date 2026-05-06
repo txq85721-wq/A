@@ -54,6 +54,7 @@ def save_run(market_regime: dict, report_path: Path, recommendations: Iterable[d
         )
         run_id = int(cur.lastrowid)
         for rank, item in enumerate(recommendations, start=1):
+            score = float(item.get("ai_score", item.get("score", 0)) or 0)
             conn.execute(
                 """
                 INSERT INTO recommendations(run_id, rank, code, name, strategy, score, payload)
@@ -65,7 +66,7 @@ def save_run(market_regime: dict, report_path: Path, recommendations: Iterable[d
                     item.get("code", ""),
                     item.get("name", ""),
                     item.get("strategy", ""),
-                    float(item.get("score", 0)),
+                    score,
                     json.dumps(item, ensure_ascii=False),
                 ),
             )
