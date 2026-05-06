@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 
+from app.utils import safe_float
+
 from .base import Candidate
 from .indicators import enrich_indicators
 
@@ -18,11 +20,8 @@ def select_quality_trend(code: str, name: str, df: pd.DataFrame, market_regime: 
     vol20 = float(last.get("volatility20", 0))
     drawdown60 = float(last.get("drawdown60", 0))
     return60 = float(last.get("return60", 0))
-    pe = None
-    pb = None
-    if meta:
-        pe = meta.get("pe_ttm")
-        pb = meta.get("pb")
+    pe = safe_float(meta.get("pe_ttm"), None) if meta else None
+    pb = safe_float(meta.get("pb"), None) if meta else None
 
     if not (close > ma60 and ma20 >= ma60 * 0.98):
         return None
@@ -37,9 +36,9 @@ def select_quality_trend(code: str, name: str, df: pd.DataFrame, market_regime: 
     score += max(0, min((0.55 - vol20) * 40, 15))
     score += max(0, min(return60 * 100, 20))
     score += 8 if drawdown60 > -0.08 else 0
-    if pe is not None and pd.notna(pe) and 0 < float(pe) < 50:
+    if pe is not None and 0 < pe < 50:
         score += 5
-    if pb is not None and pd.notna(pb) and 0 < float(pb) < 8:
+    if pb is not None and 0 < pb < 8:
         score += 5
     if market_regime.get("regime") == "weak":
         score += 5  # 弱市更偏好低波动品种
