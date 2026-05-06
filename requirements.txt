@@ -1,0 +1,11 @@
+akshare
+pandas
+numpy
+requests
+python-dotenv
+schedule
+fastapi
+uvicorn
+jinja2
+openai
+pydantic
