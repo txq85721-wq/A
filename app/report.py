@@ -6,10 +6,11 @@ from pathlib import Path
 from .config import settings
 
 
-def generate_report(market_regime: dict, recommendations: list[dict], news: list[dict]) -> Path:
+def generate_report(market_regime: dict, recommendations: list[dict], news: list[dict], stats: dict | None = None) -> Path:
     today = datetime.now().strftime("%Y-%m-%d")
     report_path = settings.report_dir / "latest_report.md"
     dated_path = settings.report_dir / f"report_{today}.md"
+    stats = stats or {}
 
     lines: list[str] = []
     lines.append(f"# A股每日交易方案推荐报告 - {today}")
@@ -22,6 +23,23 @@ def generate_report(market_regime: dict, recommendations: list[dict], news: list
     lines.append(f"- 最大建议总仓位：{int(float(market_regime.get('max_position', 0)) * 100)}%")
     lines.append(f"- 原因：{market_regime.get('reason', '')}")
     lines.append("")
+
+    if stats:
+        lines.append("## 本次扫描统计")
+        lines.append("")
+        lines.append(f"- 实际扫描股票数：{stats.get('scanned', 0)}")
+        lines.append(f"- 过滤/跳过股票数：{stats.get('skipped', 0)}")
+        lines.append(f"- 策略候选数：{stats.get('candidates', 0)}")
+        if stats.get("skip_reasons"):
+            lines.append("- 主要过滤原因：")
+            for reason, count in stats["skip_reasons"].items():
+                lines.append(f"  - {reason}: {count}")
+        if stats.get("errors"):
+            lines.append("- 执行错误统计：")
+            for reason, count in stats["errors"].items():
+                lines.append(f"  - {reason}: {count}")
+        lines.append("")
+
     lines.append("## 今日/近期最推荐的3只股票")
     lines.append("")
 
@@ -46,7 +64,7 @@ def generate_report(market_regime: dict, recommendations: list[dict], news: list
                     lines.append(f"  - {risk}")
             recent_news = item.get("recent_news") or []
             if recent_news:
-                lines.append("- 关联市场消息：")
+                lines.append("- 关联个股/市场消息：")
                 for title in recent_news[:5]:
                     lines.append(f"  - {title}")
             lines.append("")
